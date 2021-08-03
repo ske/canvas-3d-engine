@@ -13,7 +13,7 @@ namespace Demo {
         /**
          * FIXME create class for dimension with prop w/h instead of using Point
          */
-        constructor(document: HTMLDocument, dimensions: Point) {
+        constructor(document: HTMLDocument, dimensions: Point, clear: boolean = true) {
             this.canvas = document.createElement('canvas');
 
             this.canvas.width = dimensions.x;
@@ -22,7 +22,10 @@ namespace Demo {
             this.width = dimensions.x;
             this.height = dimensions.y;
 
-            this.clear();
+            if (clear) {
+                this.getContext().clearRect(0,0,this.width,this.height);
+            }
+
             this.create();
         }
 
@@ -35,7 +38,7 @@ namespace Demo {
         {
             if (!this.image) return false;
 
-            if (position.x < 0 || position.y < 0) return false
+            if (position.x < 0 || position.y < 0) return false;
             if (position.x > (this.width-1) || position.y > (this.height-1)) return false;
 
             return true;
@@ -78,8 +81,8 @@ namespace Demo {
             }
         }
 
-        private clear(): void {
-            this.getContext().clearRect(0,0,this.width,this.height);
+        clear(): void {
+            this.image!.data.fill(0);
         }
 
         private create(): void {

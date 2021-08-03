@@ -37,47 +37,54 @@ class Main {
     }
 
     runTest(): void {
+        this.buffer = new ScreenBuffer(document, Point.create(this.screen.getWidth(), this.screen.getHeight()));
+
         const cube = new Cube(90);
         this.cubeRotationTest(cube, 0);
         // this.pixelTest();
     }
 
     private pixelTest(): void {
+        const buffer = this.buffer!;
         const color = new Color(255,255,255);
-        this.buffer = new ScreenBuffer(document, Point.create(this.screen.getWidth(), this.screen.getHeight()));
 
-        this.buffer.putPixel(Point.create(10, 10), color);
+        buffer.putPixel(Point.create(10, 10), color);
 
-        Drawing.line(this.buffer, Point.create(200,250), Point.create(-100,-50), color);
-        this.buffer.paint(this.screen.context());
+        Drawing.line(buffer, Point.create(200,250), Point.create(-100,-50), color);
+        buffer.paint(this.screen.context());
     }
 
     private cubeRotationTest(cube:Cube, angle: number): void {
         Profiler.instance().start('CR');
 
         const t = new elements.Transformer();
-        const screenOffset = new Point(this.screen.getWidth() / 2 - 25, this.screen.getHeight() / 2 - 25);
         const w = this.screen.getWidth();
         const h = this.screen.getHeight();
+        const screenOffset = new Point(w / 2 - 25, h / 2 - 25);
+
         Profiler.instance().snapshot('CR', 'init');
 
-        this.buffer = new ScreenBuffer(document, Point.create(w, h));
-        Profiler.instance().snapshot('CR', 'buffer-created');
+        const buffer = this.buffer!;
+        buffer.clear();
+        Profiler.instance().snapshot('CR', 'buffer-cleared');
 
         const rotatedCube = this.rotateCube(cube, t.degreeToRad(angle));
         Profiler.instance().snapshot('CR', 'rotated');
+
         const moveVector = Point3d.create(0,95,0);
         const movedCube = this.moveCube(rotatedCube, moveVector);
         Profiler.instance().snapshot('CR', 'moved');
 
         this.drawAxes(screenOffset);
         Profiler.instance().snapshot('CR', 'draw-1');
+
         this.drawCube(movedCube, screenOffset);
         Profiler.instance().snapshot('CR', 'draw-2');
 
         this.screen.context().clearRect(0,0,w,h);
         Profiler.instance().snapshot('CR', 'cleared');
-        this.buffer.paint(this.screen.context());
+
+        buffer.paint(this.screen.context());
         Profiler.instance().snapshot('CR', 'painted');
 
         angle+=2;

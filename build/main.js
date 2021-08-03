@@ -196,13 +196,15 @@ var Demo;
         /**
          * FIXME create class for dimension with prop w/h instead of using Point
          */
-        constructor(document, dimensions) {
+        constructor(document, dimensions, clear = true) {
             this.canvas = document.createElement('canvas');
             this.canvas.width = dimensions.x;
             this.canvas.height = dimensions.y;
             this.width = dimensions.x;
             this.height = dimensions.y;
-            this.clear();
+            if (clear) {
+                this.getContext().clearRect(0, 0, this.width, this.height);
+            }
             this.create();
         }
         getContext() {
@@ -244,7 +246,7 @@ var Demo;
             }
         }
         clear() {
-            this.getContext().clearRect(0, 0, this.width, this.height);
+            this.image.data.fill(0);
         }
         create() {
             this.image = this.getContext().getImageData(0, 0, this.width, this.height);
@@ -367,26 +369,28 @@ class Main {
         this.scene = new Scene(camera, cameraOrientation, surface);
     }
     runTest() {
+        this.buffer = new ScreenBuffer(document, Point.create(this.screen.getWidth(), this.screen.getHeight()));
         const cube = new Cube(90);
         this.cubeRotationTest(cube, 0);
         // this.pixelTest();
     }
     pixelTest() {
+        const buffer = this.buffer;
         const color = new Color(255, 255, 255);
-        this.buffer = new ScreenBuffer(document, Point.create(this.screen.getWidth(), this.screen.getHeight()));
-        this.buffer.putPixel(Point.create(10, 10), color);
-        Drawing.line(this.buffer, Point.create(200, 250), Point.create(-100, -50), color);
-        this.buffer.paint(this.screen.context());
+        buffer.putPixel(Point.create(10, 10), color);
+        Drawing.line(buffer, Point.create(200, 250), Point.create(-100, -50), color);
+        buffer.paint(this.screen.context());
     }
     cubeRotationTest(cube, angle) {
         Profiler.instance().start('CR');
         const t = new elements.Transformer();
-        const screenOffset = new Point(this.screen.getWidth() / 2 - 25, this.screen.getHeight() / 2 - 25);
         const w = this.screen.getWidth();
         const h = this.screen.getHeight();
+        const screenOffset = new Point(w / 2 - 25, h / 2 - 25);
         Profiler.instance().snapshot('CR', 'init');
-        this.buffer = new ScreenBuffer(document, Point.create(w, h));
-        Profiler.instance().snapshot('CR', 'buffer-created');
+        const buffer = this.buffer;
+        buffer.clear();
+        Profiler.instance().snapshot('CR', 'buffer-cleared');
         const rotatedCube = this.rotateCube(cube, t.degreeToRad(angle));
         Profiler.instance().snapshot('CR', 'rotated');
         const moveVector = Point3d.create(0, 95, 0);
@@ -398,7 +402,7 @@ class Main {
         Profiler.instance().snapshot('CR', 'draw-2');
         this.screen.context().clearRect(0, 0, w, h);
         Profiler.instance().snapshot('CR', 'cleared');
-        this.buffer.paint(this.screen.context());
+        buffer.paint(this.screen.context());
         Profiler.instance().snapshot('CR', 'painted');
         angle += 2;
         let timers = Profiler.instance().stop('CR');
