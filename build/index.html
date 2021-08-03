@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+    <head></head>
+    <body></body>
+    <script type="text/javascript">
+    /*
+        document._data = {
+            require: function() {},
+            exports: function() {},
+        };
+
+        function define(params,init) {
+            init(document._data.require, document._data.exports);
+        }
+    */
+    </script>
+    <script type="text/javascript" src="main.js"></script>
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            // const init = document._data.exports.init;
+            init();
+        });
+    </script>
+</html>
