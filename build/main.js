@@ -170,7 +170,7 @@ var elements;
         }
         degreeToRad(degree) {
             const degree360 = 2 * Math.PI;
-            return degree / 360 * degree360;
+            return (degree / 360) * degree360;
         }
         perspectiveTransformTo2D(point, scene) {
             // when camera = (0,0,0) and cameraOrientation = (0,0,0) the transform is exactly as transform2D
@@ -197,7 +197,7 @@ var Demo;
          * FIXME create class for dimension with prop w/h instead of using Point
          */
         constructor(document, dimensions, clear = true) {
-            this.canvas = document.createElement('canvas');
+            this.canvas = document.createElement("canvas");
             this.canvas.width = dimensions.x;
             this.canvas.height = dimensions.y;
             this.width = dimensions.x;
@@ -208,14 +208,14 @@ var Demo;
             this.create();
         }
         getContext() {
-            return this.canvas.getContext('2d');
+            return this.canvas.getContext("2d");
         }
         validPosition(position) {
             if (!this.image)
                 return false;
             if (position.x < 0 || position.y < 0)
                 return false;
-            if (position.x > (this.width - 1) || position.y > (this.height - 1))
+            if (position.x > this.width - 1 || position.y > this.height - 1)
                 return false;
             return true;
         }
@@ -288,7 +288,7 @@ var util;
     const CreateEvent = (label) => {
         return {
             label: label,
-            time: window.performance.now()
+            time: window.performance.now(),
         };
     };
     util.PrintEvents = (events) => {
@@ -300,7 +300,7 @@ var util;
             }
             data.push(event.label + ": +" + (event.time - offset).toString());
         }
-        console.log('evt', data.join("|"));
+        console.log("evt", data.join("|"));
     };
     util.GetElapsedTime = (events) => {
         let from = events[0].time;
@@ -319,7 +319,7 @@ var util;
             return this._instance;
         }
         start(id) {
-            this.events[id] = [CreateEvent('start')];
+            this.events[id] = [CreateEvent("start")];
         }
         snapshot(id, label) {
             if (!this.events[id]) {
@@ -331,7 +331,7 @@ var util;
             if (!this.events[id]) {
                 return;
             }
-            this.events[id].push(CreateEvent('stop'));
+            this.events[id].push(CreateEvent("stop"));
             return this.get(id);
         }
         get(id) {
@@ -382,33 +382,35 @@ class Main {
         buffer.paint(this.screen.context());
     }
     cubeRotationTest(cube, angle) {
-        Profiler.instance().start('CR');
+        Profiler.instance().start("CR");
         const t = new elements.Transformer();
         const w = this.screen.getWidth();
         const h = this.screen.getHeight();
         const screenOffset = new Point(w / 2 - 25, h / 2 - 25);
-        Profiler.instance().snapshot('CR', 'init');
+        Profiler.instance().snapshot("CR", "init");
         const buffer = this.buffer;
         buffer.clear();
-        Profiler.instance().snapshot('CR', 'buffer-cleared');
+        Profiler.instance().snapshot("CR", "buffer-cleared");
         const rotatedCube = this.rotateCube(cube, t.degreeToRad(angle));
-        Profiler.instance().snapshot('CR', 'rotated');
+        Profiler.instance().snapshot("CR", "rotated");
         const moveVector = Point3d.create(0, 95, 0);
         const movedCube = this.moveCube(rotatedCube, moveVector);
-        Profiler.instance().snapshot('CR', 'moved');
+        Profiler.instance().snapshot("CR", "moved");
         this.drawAxes(screenOffset);
-        Profiler.instance().snapshot('CR', 'draw-1');
+        Profiler.instance().snapshot("CR", "draw-1");
         this.drawCube(movedCube, screenOffset);
-        Profiler.instance().snapshot('CR', 'draw-2');
+        Profiler.instance().snapshot("CR", "draw-2");
         this.screen.context().clearRect(0, 0, w, h);
-        Profiler.instance().snapshot('CR', 'cleared');
+        Profiler.instance().snapshot("CR", "cleared");
         buffer.paint(this.screen.context());
-        Profiler.instance().snapshot('CR', 'painted');
+        Profiler.instance().snapshot("CR", "painted");
         angle += 2;
-        let timers = Profiler.instance().stop('CR');
-        this.screen.context().fillStyle = '#0f0';
-        this.screen.context().font = '12px monospaced';
-        this.screen.context().fillText(Math.round(GetElapsedTime(timers)).toString(), 10, 10);
+        let timers = Profiler.instance().stop("CR");
+        this.screen.context().fillStyle = "#0f0";
+        this.screen.context().font = "12px monospaced";
+        this.screen
+            .context()
+            .fillText(Math.round(GetElapsedTime(timers)).toString(), 10, 10);
         if (angle < 20) {
             PrintEvents(timers);
         }
@@ -511,18 +513,18 @@ class Main {
 /// <reference path="./Main.ts" />
 const styles = {
     html: {
-        'background-color': '#444',
-        color: '#eee',
+        "background-color": "#444",
+        color: "#eee",
     },
     body: {
-        margin: '0px',
-        padding: '0px',
+        margin: "0px",
+        padding: "0px",
     },
     canvas: {
-        'background-color': 'black',
-        display: 'flex',
-        margin: '0 auto',
-    }
+        "background-color": "black",
+        display: "flex",
+        margin: "0 auto",
+    },
 };
 function style(e) {
     let css = styles[e.tagName.toLowerCase()];
@@ -534,11 +536,11 @@ function style(e) {
     }
 }
 function init() {
-    const html = document.querySelector('html');
+    const html = document.querySelector("html");
     style(html);
-    const body = html.querySelector('body');
+    const body = html.querySelector("body");
     style(body);
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     style(canvas);
     canvas.width = 1280;
     canvas.height = 720;
