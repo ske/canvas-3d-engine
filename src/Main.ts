@@ -9,6 +9,7 @@
 /// <reference path="./Demo/Drawing.ts" />
 /// <reference path="./Demo/util/Profiler.ts" />
 /// <reference path="./Engine/TerrainGenerator.ts" />
+/// <reference path="./Demo/gui/Hud.ts" />
 
 import Point = elements.Point;
 import Point3d = elements.Point3d;
@@ -22,11 +23,14 @@ import PrintEvents = util.PrintEvents;
 import GetElapsedTime = util.GetElapsedTime;
 import TerrainGenerator = Engine.TerrainGenerator;
 import HeightMap = Engine.HeightMap;
+import Hud = gui.Hud;
 
 class Main {
     private screen: Demo.Screen;
     private scene: Scene;
+    private hud: Hud | undefined;
     private buffer: ScreenBuffer | undefined;
+    private angle:number;
 
     constructor(screen: Demo.Screen) {
         this.screen = screen;
@@ -36,6 +40,32 @@ class Main {
         let surface = Point3d.create(25, 100, 400);
 
         this.scene = new Scene(camera, cameraOrientation, surface);
+        this.angle = 0;
+    }
+
+    registerKeyboard(left?:Function, right?:Function, up?:Function, down?:Function): void {
+        console.log('+', 'registering keyboard events');
+        window.addEventListener('keydown', (e: KeyboardEvent) => {
+            console.log(e.code, e.type, e.key);
+            switch (e.key) {
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    if (left) left();
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    if (right) right();
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    if (up) up();
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    if (down) down();
+                    break;
+            }
+        });
     }
 
     runTest(): void {
@@ -44,57 +74,105 @@ class Main {
             Point.create(this.screen.getWidth(), this.screen.getHeight())
         );
 
-        this.terrainTest();
+        this.hud = new gui.Hud(this.buffer);
 
-        // const cube = new Cube(90);
-        // this.cubeRotationTest(cube, 0);
+        this.buffer.paint(this.screen.context());
+        this.hud!.draw();
 
-        // this.pixelTest();
+        let terrain = this.terrainInit();
+        this.drawPoints(terrain);
+
+        this.registerKeyboard(
+            () => {
+                this.scene.getCamera().addX(2);
+                this.drawPoints(terrain);
+                this.hud!.draw();
+            },
+            () => {
+                this.scene.getCamera().addX(-2);
+                this.drawPoints(terrain);
+                this.hud!.draw();
+            },
+            () => {
+                this.scene.getCamera().addZ(-2);
+                this.drawPoints(terrain);
+                this.hud!.draw();
+            },
+            () => {
+                this.scene.getCamera().addZ(2);
+                this.drawPoints(terrain);
+                this.hud!.draw();
+            }
+        );
     }
 
-    private terrainTest(): void {
+    private terrainInit(): elements.Points {
         const generator = new TerrainGenerator(7, 128);
         generator.generate();
 
-        // this.drawHeightMap(generator.map);
-        this.terrain3D(generator.map);
+        return this.terrain3D(generator.map);
     }
 
-    private terrain3D(heightMap: HeightMap): void {
-      const t = new elements.Transformer();
-      const w = this.screen.getWidth();
-      const h = this.screen.getHeight();
-      const screenOffset = new Point(w / 2 + 250, h / 2 - 25);
+    private rotatePoints(points: elements.Points, angleY: number): elements.Points
+    {
+        let rotated:elements.Points = [];
 
-      const buffer = this.buffer!;
+        const t = new elements.Transformer();
 
-      let bs: number = 3;
+        for (let x=0; x<points.length; x++) {
+            let rotatedPoint:Point3d = t.rotateY(points[x], t.degreeToRad(angleY));
+            rotated.push(rotatedPoint);
+        }
+
+        return rotated;
+    }
+
+    private terrain3D(heightMap: HeightMap): elements.Points {
+      let points:elements.Points = [];
+
       let y1 = 0, x1 = 0;
-      let prev:Point|null = null;
+      let bs: number = 3;
 
       for (let y = 0; y < heightMap.height; y++) {
         x1 = 0;
         for (let x = 0; x < heightMap.width; x++) {
           let height: number = heightMap.get(Point.create(x,y))!;
-          let color = new Color(height, height, height);
-
           let p = new Point3d(x1,height,y1);
-          let p1 = t.perspectiveTransformTo2D(p, this.scene).add(screenOffset);
 
-          if (prev !== null) {
-            //this.line(prev, p1, color);
-          }
-
-          buffer.putBlock(p1.rounded(), color, bs*2);
-
-          prev = p1;
           x1 += bs;
+
+          points.push(p);
         }
-        prev = null;
+
         y1 += bs;
       }
 
-      buffer.paint(this.screen.context());
+      return points;
+    }
+
+    private drawPoints(points: elements.Points): void {
+        const t = new elements.Transformer();
+
+        const w = this.screen.getWidth();
+        const h = this.screen.getHeight();
+
+        const screenOffset = new Point(w / 2 + 250, h / 2 - 25);
+        const buffer = this.buffer!;
+
+        let bs: number = 3;
+
+        buffer.clear();
+
+        for(let x=0; x<points.length; x++) {
+            const p = points[x];
+            let p1 = t.perspectiveTransformTo2D(p, this.scene).add(screenOffset);
+            let color = new Color(p.y, p.y, p.y);
+
+            buffer.putBlock(p1.rounded(), color, bs*2);
+        }
+
+        this.screen.clear();
+        buffer.paint(this.screen.context());
     }
 
     private drawHeightMap(heightMap: HeightMap): void {

@@ -8,6 +8,9 @@ var Demo;
             this.height = canvas.height;
             this.contextRef = canvas.getContext("2d");
         }
+        clear() {
+            this.contextRef.clearRect(0, 0, this.getWidth(), this.getHeight());
+        }
         context() {
             return this.contextRef;
         }
@@ -56,6 +59,18 @@ var elements;
             this.x = x;
             this.y = y;
             this.z = z;
+        }
+        addX(value) {
+            this.x += value;
+        }
+        addY(value) {
+            this.y += value;
+        }
+        addZ(value) {
+            this.z += value;
+        }
+        clone() {
+            return new Point3d(this.x, this.y, this.z);
         }
         static create(x, y, z) {
             return new Point3d(x, y, z);
@@ -161,6 +176,12 @@ var elements;
             this.cameraOrientation = cameraOrientation;
             this.surface = surface;
         }
+        getCameraOrientation() {
+            return this.cameraOrientation;
+        }
+        getCamera() {
+            return this.camera;
+        }
     }
     elements.Scene = Scene;
 })(elements || (elements = {}));
@@ -173,6 +194,12 @@ var elements;
         constructor() { }
         rotateY(point, angle) {
             return elements.Point3d.create(point.z * Math.sin(angle) + point.x * Math.cos(angle), point.y, point.z * Math.cos(angle) - point.x * Math.sin(angle));
+        }
+        rotateX(point, angle) {
+            return elements.Point3d.create(point.x, point.z * Math.cos(angle) - point.y * Math.sin(angle), point.z * Math.sin(angle) + point.y * Math.cos(angle));
+        }
+        rotateZ(point, angle) {
+            return elements.Point3d.create(point.y * Math.sin(angle) + point.x * Math.cos(angle), point.y * Math.cos(angle) - point.x * Math.sin(angle), point.z);
         }
         degreeToRad(degree) {
             const degree360 = 2 * Math.PI;
@@ -268,15 +295,115 @@ var Demo;
     }
     Demo.ScreenBuffer = ScreenBuffer;
 })(Demo || (Demo = {}));
+var charset;
+(function (charset) {
+    class Simple8x8 {
+        constructor() {
+            this.characters = [];
+            this.init();
+        }
+        init() {
+            this.characters = [];
+            this.characters[32] = SPACE;
+            this.characters[180] = UP;
+            this.characters[172] = DOWN;
+            this.characters[171] = LEFT;
+            this.characters[187] = RIGHT;
+        }
+        height() {
+            return 8;
+        }
+        width() {
+            return 8;
+        }
+        get(char) {
+            let index = char.charCodeAt(char.length - 1);
+            return this.characters[index];
+        }
+    }
+    charset.Simple8x8 = Simple8x8;
+    const SPACE = [
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+    ];
+    const UP = [
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 1, 1, 0, 0, 0],
+        [0, 0, 1, 1, 1, 1, 0, 0],
+        [0, 1, 1, 1, 1, 1, 1, 0],
+        [1, 1, 0, 1, 1, 0, 1, 1],
+        [0, 0, 0, 1, 1, 0, 0, 0],
+        [0, 0, 0, 1, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0]
+    ];
+    const DOWN = [
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 1, 1, 0, 0, 0],
+        [0, 0, 0, 1, 1, 0, 0, 0],
+        [1, 1, 0, 1, 1, 0, 1, 1],
+        [0, 1, 1, 1, 1, 1, 1, 0],
+        [0, 0, 1, 1, 1, 1, 0, 0],
+        [0, 0, 0, 1, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0]
+    ];
+    const LEFT = [
+        [0, 0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 1, 1, 0, 0, 0],
+        [0, 0, 1, 1, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 1, 1, 0],
+        [0, 1, 1, 1, 1, 1, 1, 0],
+        [0, 0, 1, 1, 0, 0, 0, 0],
+        [0, 0, 0, 1, 1, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0]
+    ];
+    const RIGHT = [
+        [0, 0, 0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 1, 1, 0, 0, 0],
+        [0, 0, 0, 0, 1, 1, 0, 0],
+        [0, 1, 1, 1, 1, 1, 1, 0],
+        [0, 1, 1, 1, 1, 1, 1, 0],
+        [0, 0, 0, 0, 1, 1, 0, 0],
+        [0, 0, 0, 1, 1, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0, 0]
+    ];
+})(charset || (charset = {}));
 /// <reference path="./ScreenBuffer.ts" />
 /// <reference path="./elements/Point.ts" />
 /// <reference path="./elements/Color.ts" />
 /// <reference path="./ScreenBuffer.ts" />
+/// <reference path="./charset/simple8x8.ts" />
 var Demo;
 (function (Demo) {
     var Point = elements.Point;
     class Drawing {
         // TODO create vector/line class which contains the basic calculations for the given object type (length, multiplication, add, unit, etc)
+        static char(buffer, position, color, char, charset) {
+            let c = charset.get(char);
+            if (c == null)
+                return;
+            for (let x = 0; x < charset.width(); x++) {
+                for (let y = 0; y < charset.height(); y++) {
+                    let v = c[x][y];
+                    if (v != null && v !== 0) {
+                        buffer.putPixel(position.clone().add(Point.create(x, y)), color);
+                    }
+                }
+            }
+        }
+        static rect(buffer, topLeft, bottomRight, color) {
+            const topRight = Point.create(bottomRight.x, topLeft.y);
+            const bottomLeft = Point.create(topLeft.x, bottomRight.y);
+            Drawing.line(buffer, topLeft, topRight, color);
+            Drawing.line(buffer, topRight, bottomRight, color);
+            Drawing.line(buffer, bottomRight, bottomLeft, color);
+            Drawing.line(buffer, bottomLeft, topLeft, color);
+        }
         static line(buffer, p1, p2, color) {
             let x_len = Math.abs(p2.x - p1.x);
             let y_len = Math.abs(p2.y - p1.y);
@@ -581,6 +708,38 @@ var Engine;
     }
     Engine.TerrainGenerator = TerrainGenerator;
 })(Engine || (Engine = {}));
+var gui;
+(function (gui) {
+    var Point = elements.Point;
+    var Color = elements.Color;
+    var Drawing = Demo.Drawing;
+    var Simple8x8 = charset.Simple8x8;
+    class Hud {
+        constructor(buffer) {
+            this.dimensions = new Point(16, 16);
+            this.buffer = buffer;
+            this.borderColor = Color.create(255, 255, 255);
+            this.charset = new Simple8x8();
+        }
+        draw() {
+            this.drawButton(Point.create(0, 10), '«');
+            this.drawButton(Point.create(18, 10), '»');
+            this.drawButton(Point.create(36, 10), '┴');
+            this.drawButton(Point.create(54, 10), '┬');
+        }
+        drawButton(offset, char) {
+            let topLeft = offset;
+            let bottomRight = offset.clone().add(this.dimensions);
+            let c_w_center = Math.round(this.charset.width().valueOf() / 2);
+            let c_h_center = Math.round(this.charset.height().valueOf() / 2);
+            let c_x = topLeft.x + c_w_center;
+            let c_y = topLeft.y + c_h_center;
+            Drawing.rect(this.buffer, topLeft, bottomRight, this.borderColor);
+            Drawing.char(this.buffer, Point.create(c_x, c_y), this.borderColor, char, this.charset);
+        }
+    }
+    gui.Hud = Hud;
+})(gui || (gui = {}));
 /// <reference path="./Demo/Screen.ts" />
 /// <reference path="./Demo/elements/Point.ts" />
 /// <reference path="./Demo/elements/Point3d.ts" />
@@ -592,6 +751,7 @@ var Engine;
 /// <reference path="./Demo/Drawing.ts" />
 /// <reference path="./Demo/util/Profiler.ts" />
 /// <reference path="./Engine/TerrainGenerator.ts" />
+/// <reference path="./Demo/gui/Hud.ts" />
 var Point = elements.Point;
 var Point3d = elements.Point3d;
 var Color = elements.Color;
@@ -604,6 +764,7 @@ var PrintEvents = util.PrintEvents;
 var GetElapsedTime = util.GetElapsedTime;
 var TerrainGenerator = Engine.TerrainGenerator;
 var HeightMap = Engine.HeightMap;
+var Hud = gui.Hud;
 class Main {
     constructor(screen) {
         this.screen = screen;
@@ -611,46 +772,106 @@ class Main {
         let cameraOrientation = Point3d.create(75, -25, 0);
         let surface = Point3d.create(25, 100, 400);
         this.scene = new Scene(camera, cameraOrientation, surface);
+        this.angle = 0;
+    }
+    registerKeyboard(left, right, up, down) {
+        console.log('+', 'registering keyboard events');
+        window.addEventListener('keydown', (e) => {
+            console.log(e.code, e.type, e.key);
+            switch (e.key) {
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    if (left)
+                        left();
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    if (right)
+                        right();
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    if (up)
+                        up();
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    if (down)
+                        down();
+                    break;
+            }
+        });
     }
     runTest() {
         this.buffer = new ScreenBuffer(document, Point.create(this.screen.getWidth(), this.screen.getHeight()));
-        this.terrainTest();
-        // const cube = new Cube(90);
-        // this.cubeRotationTest(cube, 0);
-        // this.pixelTest();
+        this.hud = new gui.Hud(this.buffer);
+        this.buffer.paint(this.screen.context());
+        this.hud.draw();
+        let terrain = this.terrainInit();
+        this.drawPoints(terrain);
+        this.registerKeyboard(() => {
+            this.scene.getCamera().addX(2);
+            this.drawPoints(terrain);
+            this.hud.draw();
+        }, () => {
+            this.scene.getCamera().addX(-2);
+            this.drawPoints(terrain);
+            this.hud.draw();
+        }, () => {
+            this.scene.getCamera().addZ(-2);
+            this.drawPoints(terrain);
+            this.hud.draw();
+        }, () => {
+            this.scene.getCamera().addZ(2);
+            this.drawPoints(terrain);
+            this.hud.draw();
+        });
     }
-    terrainTest() {
+    terrainInit() {
         const generator = new TerrainGenerator(7, 128);
         generator.generate();
-        // this.drawHeightMap(generator.map);
-        this.terrain3D(generator.map);
+        return this.terrain3D(generator.map);
+    }
+    rotatePoints(points, angleY) {
+        let rotated = [];
+        const t = new elements.Transformer();
+        for (let x = 0; x < points.length; x++) {
+            let rotatedPoint = t.rotateY(points[x], t.degreeToRad(angleY));
+            rotated.push(rotatedPoint);
+        }
+        return rotated;
     }
     terrain3D(heightMap) {
+        let points = [];
+        let y1 = 0, x1 = 0;
+        let bs = 3;
+        for (let y = 0; y < heightMap.height; y++) {
+            x1 = 0;
+            for (let x = 0; x < heightMap.width; x++) {
+                let height = heightMap.get(Point.create(x, y));
+                let p = new Point3d(x1, height, y1);
+                x1 += bs;
+                points.push(p);
+            }
+            y1 += bs;
+        }
+        return points;
+    }
+    drawPoints(points) {
         const t = new elements.Transformer();
         const w = this.screen.getWidth();
         const h = this.screen.getHeight();
         const screenOffset = new Point(w / 2 + 250, h / 2 - 25);
         const buffer = this.buffer;
         let bs = 3;
-        let y1 = 0, x1 = 0;
-        let prev = null;
-        for (let y = 0; y < heightMap.height; y++) {
-            x1 = 0;
-            for (let x = 0; x < heightMap.width; x++) {
-                let height = heightMap.get(Point.create(x, y));
-                let color = new Color(height, height, height);
-                let p = new Point3d(x1, height, y1);
-                let p1 = t.perspectiveTransformTo2D(p, this.scene).add(screenOffset);
-                if (prev !== null) {
-                    //this.line(prev, p1, color);
-                }
-                buffer.putBlock(p1.rounded(), color, bs * 2);
-                prev = p1;
-                x1 += bs;
-            }
-            prev = null;
-            y1 += bs;
+        buffer.clear();
+        for (let x = 0; x < points.length; x++) {
+            const p = points[x];
+            let p1 = t.perspectiveTransformTo2D(p, this.scene).add(screenOffset);
+            let color = new Color(p.y, p.y, p.y);
+            buffer.putBlock(p1.rounded(), color, bs * 2);
         }
+        this.screen.clear();
         buffer.paint(this.screen.context());
     }
     drawHeightMap(heightMap) {

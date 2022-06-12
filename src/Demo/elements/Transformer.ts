@@ -13,6 +13,22 @@ namespace elements {
       );
     }
 
+    rotateX(point: Point3d, angle: number): Point3d {
+      return Point3d.create(
+        point.x,
+        point.z * Math.cos(angle) - point.y * Math.sin(angle),
+        point.z * Math.sin(angle) + point.y * Math.cos(angle)
+      );
+    }
+
+    rotateZ(point: Point3d, angle: number): Point3d {
+      return Point3d.create(
+        point.y * Math.sin(angle) + point.x * Math.cos(angle),
+        point.y * Math.cos(angle) - point.x * Math.sin(angle),
+        point.z
+      );
+    }
+
     degreeToRad(degree: number): number {
       const degree360 = 2 * Math.PI;
       return (degree / 360) * degree360;

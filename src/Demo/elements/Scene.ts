@@ -10,5 +10,13 @@ namespace elements {
       this.cameraOrientation = cameraOrientation;
       this.surface = surface;
     }
+
+    getCameraOrientation(): Point3d {
+      return this.cameraOrientation;
+    }
+
+    getCamera(): Point3d {
+      return this.camera;
+    }
   }
 }
