@@ -12,6 +12,13 @@ namespace charset {
     }
 
     export class Simple8x8 implements CharSet {
+        static KEYCODE_SPACE = 32;
+
+        static KEYCODE_LEFT = 180;
+        static KEYCODE_RIGHT = 172;
+        static KEYCODE_UP = 171;
+        static KEYCODE_DOWN = 187;
+
         private characters:CharacterSet = [];
 
         constructor() {
@@ -20,11 +27,13 @@ namespace charset {
 
         init() {
             this.characters = [];
-            this.characters[32] = SPACE;
-            this.characters[180] = LEFT;
-            this.characters[172] = RIGHT;
-            this.characters[171] = UP;
-            this.characters[187] = DOWN;
+
+            this.characters[Simple8x8.KEYCODE_SPACE] = CHAR_SPACE;
+
+            this.characters[Simple8x8.KEYCODE_LEFT] = CHAR_LEFT;
+            this.characters[Simple8x8.KEYCODE_RIGHT] = CHAR_RIGHT;
+            this.characters[Simple8x8.KEYCODE_UP] = CHAR_UP;
+            this.characters[Simple8x8.KEYCODE_DOWN] = CHAR_DOWN;
         }
 
         height(): Number {
@@ -41,7 +50,7 @@ namespace charset {
         }
     }
 
-    const SPACE:MatrixOrNull = [
+    const CHAR_SPACE:MatrixOrNull = [
         [0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0],
@@ -52,7 +61,7 @@ namespace charset {
         [0,0,0,0,0,0,0,0],
     ];
 
-    const UP:MatrixOrNull = [
+    const CHAR_UP:MatrixOrNull = [
         [0,0,0,0,0,0,0,0],
         [0,0,0,1,1,0,0,0],
         [0,0,1,1,1,1,0,0],
@@ -63,7 +72,7 @@ namespace charset {
         [0,0,0,0,0,0,0,0]
     ];
 
-    const DOWN:MatrixOrNull = [
+    const CHAR_DOWN:MatrixOrNull = [
         [0,0,0,0,0,0,0,0],
         [0,0,0,1,1,0,0,0],
         [0,0,0,1,1,0,0,0],
@@ -73,7 +82,7 @@ namespace charset {
         [0,0,0,1,1,0,0,0],
         [0,0,0,0,0,0,0,0]
     ];
-    const LEFT:MatrixOrNull = [
+    const CHAR_LEFT:MatrixOrNull = [
         [0,0,0,0,1,0,0,0],
         [0,0,0,1,1,0,0,0],
         [0,0,1,1,0,0,0,0],
@@ -83,7 +92,7 @@ namespace charset {
         [0,0,0,1,1,0,0,0],
         [0,0,0,0,1,0,0,0]
     ];
-    const RIGHT:MatrixOrNull = [
+    const CHAR_RIGHT:MatrixOrNull = [
         [0,0,0,1,0,0,0,0],
         [0,0,0,1,1,0,0,0],
         [0,0,0,0,1,1,0,0],
