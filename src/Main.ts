@@ -45,24 +45,45 @@ class Main {
 
     registerKeyboard(left?:Function, right?:Function, up?:Function, down?:Function): void {
         console.log('+', 'registering keyboard events');
-        window.addEventListener('keydown', (e: KeyboardEvent) => {
-            console.log(e.code, e.type, e.key);
+
+        window.addEventListener('keyup', (e: KeyboardEvent) => {
             switch (e.key) {
                 case 'ArrowLeft':
                     e.preventDefault();
-                    if (left) left();
+                    if (left) left(false);
                     break;
                 case 'ArrowRight':
                     e.preventDefault();
-                    if (right) right();
+                    if (right) right(false);
                     break;
                 case 'ArrowUp':
                     e.preventDefault();
-                    if (up) up();
+                    if (up) up(false);
                     break;
                 case 'ArrowDown':
                     e.preventDefault();
-                    if (down) down();
+                    if (down) down(false);
+                    break;
+            }
+        });
+
+        window.addEventListener('keydown', (e: KeyboardEvent) => {
+            switch (e.key) {
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    if (left) left(true);
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    if (right) right(true);
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    if (up) up(true);
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    if (down) down(true);
                     break;
             }
         });
@@ -74,34 +95,41 @@ class Main {
             Point.create(this.screen.getWidth(), this.screen.getHeight())
         );
 
-        this.hud = new gui.Hud(this.buffer);
-
-        this.buffer.paint(this.screen.context());
-        this.hud!.draw();
+        this.hud = new gui.Hud(this.buffer, this.screen);
 
         let terrain = this.terrainInit();
         this.drawPoints(terrain);
+        this.hud!.draw();
 
         this.registerKeyboard(
-            () => {
-                this.scene.getCamera().addX(2);
-                this.drawPoints(terrain);
-                this.hud!.draw();
+            (isDown: boolean) => {
+                if (isDown) {
+                    this.scene.getCamera().addX(2);
+                    this.drawPoints(terrain);
+                }
+
+                this.hud!.draw(isDown, Hud.LEFT);
             },
-            () => {
-                this.scene.getCamera().addX(-2);
-                this.drawPoints(terrain);
-                this.hud!.draw();
+            (isDown: boolean) => {
+                if (isDown) {
+                    this.scene.getCamera().addX(-2);
+                    this.drawPoints(terrain);
+                }
+                this.hud!.draw(isDown, Hud.RIGHT);
             },
-            () => {
-                this.scene.getCamera().addZ(-2);
-                this.drawPoints(terrain);
-                this.hud!.draw();
+            (isDown: boolean) => {
+                if (isDown) {
+                    this.scene.getCamera().addZ(-2);
+                    this.drawPoints(terrain);
+                }
+                this.hud!.draw(isDown, Hud.UP);
             },
-            () => {
-                this.scene.getCamera().addZ(2);
-                this.drawPoints(terrain);
-                this.hud!.draw();
+            (isDown: boolean) => {
+                if (isDown) {
+                    this.scene.getCamera().addZ(2);
+                    this.drawPoints(terrain);
+                }
+                this.hud!.draw(isDown, Hud.DOWN);
             }
         );
     }

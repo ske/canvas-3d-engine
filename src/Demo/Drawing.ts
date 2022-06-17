@@ -36,6 +36,24 @@ namespace Demo {
       }
     }
 
+    static filledRect(buffer: ScreenBuffer,
+                      topLeft: Point,
+                      bottomRight: Point,
+                      fillColor: Color): void {
+
+      const topRight:Point = Point.create(bottomRight.x, topLeft.y);
+      const bottomLeft:Point = Point.create(topLeft.x, bottomRight.y);
+
+      for (let y:number = topLeft.y; y<bottomLeft.y; y++) {
+        Drawing.line(
+            buffer,
+            Point.create(topLeft.x, y),
+            Point.create(topRight.x, y),
+            fillColor
+        );
+      }
+    }
+
     static rect(
         buffer: ScreenBuffer,
         topLeft: Point,

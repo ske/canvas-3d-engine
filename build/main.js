@@ -305,10 +305,10 @@ var charset;
         init() {
             this.characters = [];
             this.characters[32] = SPACE;
-            this.characters[180] = UP;
-            this.characters[172] = DOWN;
-            this.characters[171] = LEFT;
-            this.characters[187] = RIGHT;
+            this.characters[180] = LEFT;
+            this.characters[172] = RIGHT;
+            this.characters[171] = UP;
+            this.characters[187] = DOWN;
         }
         height() {
             return 8;
@@ -394,6 +394,13 @@ var Demo;
                         buffer.putPixel(position.clone().add(Point.create(x, y)), color);
                     }
                 }
+            }
+        }
+        static filledRect(buffer, topLeft, bottomRight, fillColor) {
+            const topRight = Point.create(bottomRight.x, topLeft.y);
+            const bottomLeft = Point.create(topLeft.x, bottomRight.y);
+            for (let y = topLeft.y; y < bottomLeft.y; y++) {
+                Drawing.line(buffer, Point.create(topLeft.x, y), Point.create(topRight.x, y), fillColor);
             }
         }
         static rect(buffer, topLeft, bottomRight, color) {
@@ -715,29 +722,51 @@ var gui;
     var Drawing = Demo.Drawing;
     var Simple8x8 = charset.Simple8x8;
     class Hud {
-        constructor(buffer) {
+        constructor(buffer, screen) {
             this.dimensions = new Point(16, 16);
             this.buffer = buffer;
             this.borderColor = Color.create(255, 255, 255);
+            this.backgroundColor = Color.create(0, 0, 0);
             this.charset = new Simple8x8();
+            this.screen = screen;
         }
-        draw() {
-            this.drawButton(Point.create(0, 10), '«');
-            this.drawButton(Point.create(18, 10), '»');
-            this.drawButton(Point.create(36, 10), '┴');
-            this.drawButton(Point.create(54, 10), '┬');
+        draw(highlighted = false, key = '') {
+            if (key.length) {
+                this.drawButton(Point.create(0, 10), Hud.LEFT, key == Hud.LEFT ? highlighted : false);
+                this.drawButton(Point.create(18, 10), Hud.RIGHT, key == Hud.RIGHT ? highlighted : false);
+                this.drawButton(Point.create(36, 10), Hud.UP, key == Hud.UP ? highlighted : false);
+                this.drawButton(Point.create(54, 10), Hud.DOWN, key == Hud.DOWN ? highlighted : false);
+            }
+            else {
+                this.drawButton(Point.create(0, 10), Hud.LEFT, false);
+                this.drawButton(Point.create(18, 10), Hud.RIGHT, false);
+                this.drawButton(Point.create(36, 10), Hud.UP, false);
+                this.drawButton(Point.create(54, 10), Hud.DOWN, false);
+            }
+            this.buffer.paint(this.screen.context());
         }
-        drawButton(offset, char) {
+        drawButton(offset, char, highlighted = false) {
             let topLeft = offset;
             let bottomRight = offset.clone().add(this.dimensions);
             let c_w_center = Math.round(this.charset.width().valueOf() / 2);
             let c_h_center = Math.round(this.charset.height().valueOf() / 2);
             let c_x = topLeft.x + c_w_center;
             let c_y = topLeft.y + c_h_center;
-            Drawing.rect(this.buffer, topLeft, bottomRight, this.borderColor);
-            Drawing.char(this.buffer, Point.create(c_x, c_y), this.borderColor, char, this.charset);
+            if (highlighted) {
+                Drawing.filledRect(this.buffer, topLeft, bottomRight, this.borderColor);
+                Drawing.char(this.buffer, Point.create(c_x, c_y), this.backgroundColor, char, this.charset);
+            }
+            else {
+                Drawing.filledRect(this.buffer, topLeft, bottomRight, this.backgroundColor);
+                Drawing.rect(this.buffer, topLeft, bottomRight, this.borderColor);
+                Drawing.char(this.buffer, Point.create(c_x, c_y), this.borderColor, char, this.charset);
+            }
         }
     }
+    Hud.LEFT = '«';
+    Hud.RIGHT = '»';
+    Hud.UP = '┴';
+    Hud.DOWN = '┬';
     gui.Hud = Hud;
 })(gui || (gui = {}));
 /// <reference path="./Demo/Screen.ts" />
@@ -776,55 +805,85 @@ class Main {
     }
     registerKeyboard(left, right, up, down) {
         console.log('+', 'registering keyboard events');
-        window.addEventListener('keydown', (e) => {
-            console.log(e.code, e.type, e.key);
+        window.addEventListener('keyup', (e) => {
             switch (e.key) {
                 case 'ArrowLeft':
                     e.preventDefault();
                     if (left)
-                        left();
+                        left(false);
                     break;
                 case 'ArrowRight':
                     e.preventDefault();
                     if (right)
-                        right();
+                        right(false);
                     break;
                 case 'ArrowUp':
                     e.preventDefault();
                     if (up)
-                        up();
+                        up(false);
                     break;
                 case 'ArrowDown':
                     e.preventDefault();
                     if (down)
-                        down();
+                        down(false);
+                    break;
+            }
+        });
+        window.addEventListener('keydown', (e) => {
+            switch (e.key) {
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    if (left)
+                        left(true);
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    if (right)
+                        right(true);
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    if (up)
+                        up(true);
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    if (down)
+                        down(true);
                     break;
             }
         });
     }
     runTest() {
         this.buffer = new ScreenBuffer(document, Point.create(this.screen.getWidth(), this.screen.getHeight()));
-        this.hud = new gui.Hud(this.buffer);
-        this.buffer.paint(this.screen.context());
-        this.hud.draw();
+        this.hud = new gui.Hud(this.buffer, this.screen);
         let terrain = this.terrainInit();
         this.drawPoints(terrain);
-        this.registerKeyboard(() => {
-            this.scene.getCamera().addX(2);
-            this.drawPoints(terrain);
-            this.hud.draw();
-        }, () => {
-            this.scene.getCamera().addX(-2);
-            this.drawPoints(terrain);
-            this.hud.draw();
-        }, () => {
-            this.scene.getCamera().addZ(-2);
-            this.drawPoints(terrain);
-            this.hud.draw();
-        }, () => {
-            this.scene.getCamera().addZ(2);
-            this.drawPoints(terrain);
-            this.hud.draw();
+        this.hud.draw();
+        this.registerKeyboard((isDown) => {
+            if (isDown) {
+                this.scene.getCamera().addX(2);
+                this.drawPoints(terrain);
+            }
+            this.hud.draw(isDown, Hud.LEFT);
+        }, (isDown) => {
+            if (isDown) {
+                this.scene.getCamera().addX(-2);
+                this.drawPoints(terrain);
+            }
+            this.hud.draw(isDown, Hud.RIGHT);
+        }, (isDown) => {
+            if (isDown) {
+                this.scene.getCamera().addZ(-2);
+                this.drawPoints(terrain);
+            }
+            this.hud.draw(isDown, Hud.UP);
+        }, (isDown) => {
+            if (isDown) {
+                this.scene.getCamera().addZ(2);
+                this.drawPoints(terrain);
+            }
+            this.hud.draw(isDown, Hud.DOWN);
         });
     }
     terrainInit() {

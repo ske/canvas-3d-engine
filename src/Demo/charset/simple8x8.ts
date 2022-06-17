@@ -21,10 +21,10 @@ namespace charset {
         init() {
             this.characters = [];
             this.characters[32] = SPACE;
-            this.characters[180] = UP;
-            this.characters[172] = DOWN;
-            this.characters[171] = LEFT;
-            this.characters[187] = RIGHT;
+            this.characters[180] = LEFT;
+            this.characters[172] = RIGHT;
+            this.characters[171] = UP;
+            this.characters[187] = DOWN;
         }
 
         height(): Number {
